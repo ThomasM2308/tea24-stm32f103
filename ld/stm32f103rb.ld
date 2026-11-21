@@ -71,20 +71,23 @@ SECTIONS
     __exidx_end = .;
   } > FLASH
 
-  /* Flash source address for .data initialization image. */
-  _sidata = LOADADDR(.data);
-
   /* .data: initialized read/write globals.
-   * Runtime location is RAM; initial values are copied from flash.
+   * Runtime location (VMA) is RAM, the initial values are stored in flash
+   * (LMA, "AT> FLASH") and copied to RAM by the startup code.
    */
-  .data : AT(_sidata)
+  .data :
   {
     . = ALIGN(4);
     _sdata = .;
     *(.data*)
     . = ALIGN(4);
     _edata = .;
-  } > RAM
+  } > RAM AT> FLASH
+
+  /* Flash source address for .data initialization image.
+   * Must come AFTER .data: before, LOADADDR(.data) is not yet known.
+   */
+  _sidata = LOADADDR(.data);
 
   /* .bss: zero-initialized globals/statics in RAM.
    * Startup clears this range to zero.
